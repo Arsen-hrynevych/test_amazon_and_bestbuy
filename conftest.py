@@ -2,7 +2,7 @@ import pytest
 from selenium import webdriver
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def driver(request):
     options = webdriver.ChromeOptions()
     options.add_argument('--no-sandbox')
@@ -14,7 +14,7 @@ def driver(request):
     options.add_argument('--disable-extensions')
     options.add_argument('--disable-gpu')
     options.add_argument('--disable-dev-shm-usage')
-    wd = webdriver.Chrome(options=options)
+    wd = webdriver.Chrome("/usr/local/bin/chromedriver", options=options)
     wd.implicitly_wait(5)
     request.addfinalizer(wd.quit)
     return wd
