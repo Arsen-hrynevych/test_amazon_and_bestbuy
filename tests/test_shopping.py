@@ -4,13 +4,16 @@ from selenium.webdriver.common.keys import Keys
 
 from conftest import driver
 
+first_dict = {}
+second_dict = {}
+
 
 @pytest.mark.parametrize("url, search_locator, products_locator, price_locator, review_locator ", [
     ("https://www.amazon.com/", "//input[@name = 'field-keywords']", "//div[@class = 'a-section']",
-     "span.a-price-whole", "span.a-size-base.s-underline-text"),
+     "span.a-price-whole", "span.s-underline-text"),
     ("https://www.bestbuy.com/", "//input[@class = 'search-input']", "//div[@class = 'embedded-badge']",
      "div.priceView-hero-price span:first-child", "span.c-reviews")])
-def test_shopping(driver, url, search_locator, products_locator, price_locator, review_locator, ):
+def test_shopping(driver, url, search_locator, products_locator, price_locator, review_locator):
     product = 'samsung galaxy s22'
 
     driver.get(url)
@@ -28,34 +31,29 @@ def test_shopping(driver, url, search_locator, products_locator, price_locator, 
     review_counts = driver.find_elements_by_css_selector(review_locator)
     products_price = driver.find_elements_by_css_selector(price_locator)
 
-    max_review = 0
-    min_price = 0
-    bestbuy_price = 0
-    amazon_price = 0
-
     for i in range(len(products_price)):
         if i >= len(review_counts):
             break
 
-        review_count_text = review_counts[i].text.strip('()').replace(',', '')
+        review_count_text = review_counts[i].text.strip('()').replace(',', '.')
+        price_count_text = products_price[i + 1].text.strip('$').replace(',', '.')
 
-        if review_count_text == '':
-            break
-
-        if '$' in review_count_text:
-            review_count_text = review_count_text.replace('$', '')
-        try:
-            review_count = int(float(review_count_text))
-        except:
+        if review_count_text == '' or price_count_text == '' or review_count_text == 'Not Yet Reviewed':
             continue
 
-        if review_count > max_review:
-            max_review = review_count
-            min_price = products_price[i].text.replace(',', '')
+        review_count = int(review_count_text.replace('.', ''))
+        price_count = float(price_count_text.replace('.99', ''))
 
-        if "amazon" in url and min_price != '':
-            amazon_price = float(min_price)
-        if "best" in url:
-            bestbuy_price = float(min_price.replace('$', ''))
+        if "amazon" in url:
+            first_dict[review_count] = price_count
+        if "bestbuy" in url:
+            second_dict[review_count] = price_count
+
+    max_first_value = max(first_dict)
+    max_second_value = max(second_dict)
+    amazon_price = first_dict[max_first_value]
+    bestbuy_price = second_dict[max_second_value]
+
     # once script completed the line below should be uncommented.
+
     assert amazon_price > bestbuy_price
