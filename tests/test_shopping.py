@@ -5,7 +5,7 @@ from selenium.webdriver.common.keys import Keys
 from conftest import driver
 
 first_dict = {}
-second_dict = {}
+second_dict = {0: 0}
 
 
 @pytest.mark.parametrize("url, search_locator, products_locator, price_locator, review_locator ", [
@@ -36,7 +36,7 @@ def test_shopping(driver, url, search_locator, products_locator, price_locator, 
             break
 
         review_count_text = review_counts[i].text.strip('()').replace(',', '.')
-        price_count_text = products_price[i + 1].text.strip('$').replace(',', '.')
+        price_count_text = products_price[i].text.strip('$').replace(',', '.')
 
         if review_count_text == '' or price_count_text == '' or review_count_text == 'Not Yet Reviewed':
             continue
@@ -48,11 +48,10 @@ def test_shopping(driver, url, search_locator, products_locator, price_locator, 
             first_dict[review_count] = price_count
         if "bestbuy" in url:
             second_dict[review_count] = price_count
-
     max_first_value = max(first_dict)
     max_second_value = max(second_dict)
-    amazon_price = first_dict[max_first_value]
     bestbuy_price = second_dict[max_second_value]
+    amazon_price = first_dict[max_first_value]
 
     # once script completed the line below should be uncommented.
 
